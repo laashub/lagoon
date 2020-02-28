@@ -4,6 +4,7 @@
     "outDir": "./dist"
   },
   "files": [
-    "./src/util.ts"
+    "./src/util.ts",
+    "./src/openshiftApi.ts"
   ]
 }

@@ -8,7 +8,7 @@ const { sendToLagoonLogs } = require('@lagoon/commons/src/logs');
 const {
   getOpenShiftInfoForProject,
 } = require('@lagoon/commons/src/api');
-const { BaaS } = require('@lagoon/commons/src/openshiftApi');
+const { BaaS } = require('@lagoon/commons/dist/openshiftApi');
 
 
 async function resticRestore (data: Object) {
