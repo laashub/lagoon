@@ -8,6 +8,7 @@
     "node": ">=10.16.3"
   },
   "scripts": {
+    "build": "tsc",
     "format": "prettier-eslint --write '**/*.js'",
     "lint": "../eslint-config-lagoon-node/node_modules/.bin/eslint .",
     "test": "jest"
@@ -15,7 +16,8 @@
   "devDependencies": {
     "jest": "^24.9.0",
     "prettier": "^1.14.2",
-    "prettier-eslint-cli": "^4.7.1"
+    "prettier-eslint-cli": "^4.7.1",
+    "typescript": "^3.8.2"
   },
   "dependencies": {
     "@lagoon/lokka-transport-http": "^1.6.1",
