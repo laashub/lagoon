@@ -2,7 +2,7 @@
 
 const R = require('ramda');
 const { sendToLagoonLogs } = require('@lagoon/commons/src/logs');
-const { getProject } = require('@lagoon/commons/src/gitlabApi');
+const { getProject } = require('@lagoon/commons/dist/gitlabApi');
 const {
   addProject,
   updateProject,
