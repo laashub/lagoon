@@ -2,7 +2,7 @@
 
 const { logger } = require('@lagoon/commons/dist/local-logging');
 
-const { getRocketChatInfoForProject } = require('@lagoon/commons/src/api');
+const { getRocketChatInfoForProject } = require('@lagoon/commons/dist/api');
 
 const { URL } = require('url');
 const http = require('https');

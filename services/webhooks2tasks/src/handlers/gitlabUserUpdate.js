@@ -3,7 +3,7 @@
 const R = require('ramda');
 const { sendToLagoonLogs } = require('@lagoon/commons/dist/logs');
 const { getUser } = require('@lagoon/commons/dist/gitlabApi');
-const { updateUser } = require('@lagoon/commons/src/api');
+const { updateUser } = require('@lagoon/commons/dist/api');
 
 import type { WebhookRequestData } from '../types';
 

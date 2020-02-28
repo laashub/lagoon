@@ -7,7 +7,7 @@ const { logger } = require('@lagoon/commons/dist/local-logging');
 const {
   getOpenShiftInfoForProject,
   updateTask
-} = require('@lagoon/commons/src/api');
+} = require('@lagoon/commons/dist/api');
 const {
   sendToLagoonLogs,
   initSendToLagoonLogs

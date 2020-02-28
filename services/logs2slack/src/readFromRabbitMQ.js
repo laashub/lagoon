@@ -2,7 +2,7 @@
 
 const { logger } = require('@lagoon/commons/dist/local-logging');
 
-const { getSlackinfoForProject } = require('@lagoon/commons/src/api');
+const { getSlackinfoForProject } = require('@lagoon/commons/dist/api');
 
 var IncomingWebhook = require('@slack/client').IncomingWebhook;
 

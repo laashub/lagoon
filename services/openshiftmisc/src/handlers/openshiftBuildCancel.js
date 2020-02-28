@@ -5,7 +5,7 @@ const OpenShiftClient = require('openshift-client');
 const R = require('ramda');
 const { logger } = require('@lagoon/commons/dist/local-logging');
 const { sendToLagoonLogs } = require('@lagoon/commons/dist/logs');
-const { getOpenShiftInfoForProject } = require('@lagoon/commons/src/api');
+const { getOpenShiftInfoForProject } = require('@lagoon/commons/dist/api');
 
 async function openshiftBuildCancel(data: Object) {
   const { build, project, environment } = data;

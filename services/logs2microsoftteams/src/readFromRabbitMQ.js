@@ -2,7 +2,7 @@
 
 const { logger } = require('@lagoon/commons/dist/local-logging');
 
-const { getMicrosoftTeamsInfoForProject } = require('@lagoon/commons/src/api');
+const { getMicrosoftTeamsInfoForProject } = require('@lagoon/commons/dist/api');
 
 const { URL } = require('url');
 const http = require('https');

@@ -7,7 +7,7 @@ const R = require('ramda');
 const sha1 = require('sha1');
 const crypto = require('crypto');
 const { logger } = require('@lagoon/commons/dist/local-logging');
-const { getOpenShiftInfoForProject, addOrUpdateEnvironment, getEnvironmentByName, addDeployment } = require('@lagoon/commons/src/api');
+const { getOpenShiftInfoForProject, addOrUpdateEnvironment, getEnvironmentByName, addDeployment } = require('@lagoon/commons/dist/api');
 
 const { sendToLagoonLogs, initSendToLagoonLogs } = require('@lagoon/commons/dist/logs');
 const { consumeTasks, initSendToLagoonTasks, createTaskMonitor } = require('@lagoon/commons/dist/tasks');

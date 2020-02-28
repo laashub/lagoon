@@ -1,6 +1,6 @@
 import * as R from 'ramda';
 import * as gitlabApi from '@lagoon/commons/dist/gitlabApi';
-import * as api from '@lagoon/commons/src/api';
+import * as api from '@lagoon/commons/dist/api';
 import { logger } from '@lagoon/commons/dist/local-logging';
 
 interface GitlabGroup {

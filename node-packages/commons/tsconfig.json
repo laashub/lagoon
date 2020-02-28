@@ -12,6 +12,7 @@
     "./src/jwt.ts",
     "./src/local-logging.ts",
     "./src/logs.ts",
-    "./src/tasks.ts"
+    "./src/tasks.ts",
+    "./src/api.ts"
   ]
 }

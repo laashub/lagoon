@@ -6,7 +6,7 @@ const {
 const {
   updateRestore,
   getEnvironmentByOpenshiftProjectName
-} = require('@lagoon/commons/src/api');
+} = require('@lagoon/commons/dist/api');
 const R = require('ramda');
 
 import type {

@@ -10,8 +10,6 @@ interface Permissions {
 interface Payload {
   role: Role;
 
-  permissions: Permissions;
-
   // Issuer - Information on who created this token
   iss: string;
 
@@ -31,6 +29,7 @@ interface Payload {
 
 interface PayloadWithUser extends Payload {
   userId: number;
+  permissions: Permissions;
 }
 
 // Most of these parameters are described in more detail in the jsonwebtoken README

@@ -2,7 +2,7 @@
 const retry = require('async-retry')
 
 const { sendToLagoonLogs } = require('@lagoon/commons/dist/logs');
-const { addUserToGroup, sanitizeGroupName } = require('@lagoon/commons/src/api');
+const { addUserToGroup, sanitizeGroupName } = require('@lagoon/commons/dist/api');
 const { getGroup } = require('@lagoon/commons/dist/gitlabApi');
 const { logger } = require('@lagoon/commons/dist/local-logging');
 

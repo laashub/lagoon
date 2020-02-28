@@ -10,7 +10,7 @@ const {
   addGroupToProject,
   removeGroupFromProject,
   sanitizeGroupName,
-} = require('@lagoon/commons/src/api');
+} = require('@lagoon/commons/dist/api');
 
 import type { WebhookRequestData } from '../types';
 

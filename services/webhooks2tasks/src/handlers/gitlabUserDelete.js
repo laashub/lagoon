@@ -1,7 +1,7 @@
 // @flow
 
 const { sendToLagoonLogs } = require('@lagoon/commons/dist/logs');
-const { deleteUser } = require('@lagoon/commons/src/api');
+const { deleteUser } = require('@lagoon/commons/dist/api');
 
 import type { WebhookRequestData } from '../types';
 

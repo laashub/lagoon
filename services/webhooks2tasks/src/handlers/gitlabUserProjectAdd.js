@@ -1,6 +1,6 @@
 // @flow
 const { sendToLagoonLogs } = require('@lagoon/commons/dist/logs');
-const { addUserToGroup } = require('@lagoon/commons/src/api');
+const { addUserToGroup } = require('@lagoon/commons/dist/api');
 
 import type { WebhookRequestData } from '../types';
 
