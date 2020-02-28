@@ -3,7 +3,7 @@
 const moment = require('moment');
 
 const { sendToLagoonLogs } = require('@lagoon/commons/src/logs');
-const { logger } = require('@lagoon/commons/src/local-logging');
+const { logger } = require('@lagoon/commons/dist/local-logging');
 const {
   addBackup,
   getEnvironmentByOpenshiftProjectName

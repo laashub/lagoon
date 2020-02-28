@@ -4,7 +4,7 @@ const retry = require('async-retry')
 const { sendToLagoonLogs } = require('@lagoon/commons/src/logs');
 const { addUserToGroup, sanitizeGroupName } = require('@lagoon/commons/src/api');
 const { getGroup } = require('@lagoon/commons/dist/gitlabApi');
-const { logger } = require('@lagoon/commons/src/local-logging');
+const { logger } = require('@lagoon/commons/dist/local-logging');
 
 import type { WebhookRequestData } from '../types';
 

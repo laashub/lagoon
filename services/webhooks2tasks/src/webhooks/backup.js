@@ -2,7 +2,7 @@
 
 const {
   logger
-} = require('@lagoon/commons/src/local-logging');
+} = require('@lagoon/commons/dist/local-logging');
 const {
   sendToLagoonLogs
 } = require('@lagoon/commons/src/logs');

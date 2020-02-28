@@ -6,7 +6,7 @@ const sleep = require("es7-sleep");
 const AWS = require('aws-sdk');
 const uuidv4 = require('uuid/v4');
 const R = require('ramda');
-const { logger } = require('@lagoon/commons/src/local-logging');
+const { logger } = require('@lagoon/commons/dist/local-logging');
 const {
   getOpenShiftInfoForProject,
   getEnvironmentByName,

@@ -2,7 +2,7 @@
 
 const uuid4 = require('uuid4');
 const { sendToLagoonLogs } = require('@lagoon/commons/src/logs');
-const { logger } = require('@lagoon/commons/src/local-logging');
+const { logger } = require('@lagoon/commons/dist/local-logging');
 const {
   deleteBackup,
   getEnvironmentBackups

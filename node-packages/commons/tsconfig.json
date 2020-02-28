@@ -9,6 +9,7 @@
     "./src/lokka-transport-http-retry.ts",
     "./src/bitbucketApi.ts",
     "./src/gitlabApi.ts",
-    "./src/jwt.ts"
+    "./src/jwt.ts",
+    "./src/local-logging.ts"
   ]
 }

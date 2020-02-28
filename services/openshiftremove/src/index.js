@@ -3,7 +3,7 @@
 const promisify = require('util').promisify;
 const OpenShiftClient = require('openshift-client');
 const { ServiceCatalog } = require('@lagoon/commons/dist/openshiftApi');
-const { logger } = require('@lagoon/commons/src/local-logging');
+const { logger } = require('@lagoon/commons/dist/local-logging');
 const {
   sendToLagoonLogs,
   initSendToLagoonLogs

@@ -1,6 +1,6 @@
 // @flow
 
-const { logger } = require('@lagoon/commons/src/local-logging');
+const { logger } = require('@lagoon/commons/dist/local-logging');
 const { getProjectsByGitUrl } = require('@lagoon/commons/src/api');
 const { sendToLagoonLogs } = require('@lagoon/commons/src/logs');
 const githubPullRequestClosed = require('../handlers/githubPullRequestClosed');

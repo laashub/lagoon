@@ -14,7 +14,7 @@ const { Lokka } = require('lokka');
 const { Transport } = require('../dist/lokka-transport-http-retry');
 const R = require('ramda');
 const { createJWTWithoutUserId } = require('../dist/jwt');
-const { logger } = require('./local-logging');
+const { logger } = require('../dist/local-logging');
 
 const { JWTSECRET, JWTAUDIENCE } = process.env;
 const API_HOST = R.propOr('http://api:3000', 'API_HOST', process.env);

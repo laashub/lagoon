@@ -1,7 +1,7 @@
 // @flow
 
 const R = require('ramda');
-const { logger } = require('@lagoon/commons/src/local-logging');
+const { logger } = require('@lagoon/commons/dist/local-logging');
 const {
   sendToLagoonLogs,
   initSendToLagoonLogs
