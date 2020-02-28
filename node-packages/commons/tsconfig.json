@@ -5,6 +5,7 @@
   },
   "files": [
     "./src/util.ts",
-    "./src/openshiftApi.ts"
+    "./src/openshiftApi.ts",
+    "./src/lokka-transport-http-retry.ts"
   ]
 }
