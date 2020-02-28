@@ -13,7 +13,7 @@ import type {
 const { Lokka } = require('lokka');
 const { Transport } = require('../dist/lokka-transport-http-retry');
 const R = require('ramda');
-const { createJWTWithoutUserId } = require('./jwt');
+const { createJWTWithoutUserId } = require('../dist/jwt');
 const { logger } = require('./local-logging');
 
 const { JWTSECRET, JWTAUDIENCE } = process.env;

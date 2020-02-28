@@ -1,7 +1,7 @@
 // @flow
 
 const jwt = require('jsonwebtoken');
-const { createJWT } = require('../jwt');
+const { createJWT } = require('../../dist/jwt');
 
 describe('createJWT', () => {
   test('should create token properly', async () => {
