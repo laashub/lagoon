@@ -1,6 +1,6 @@
 // @flow
 
-const { sendToLagoonLogs } = require('@lagoon/commons/src/logs');
+const { sendToLagoonLogs } = require('@lagoon/commons/dist/logs');
 const { getGroup } = require('@lagoon/commons/dist/gitlabApi');
 const { updateGroup, sanitizeGroupName } = require('@lagoon/commons/src/api');
 

@@ -5,7 +5,7 @@ const { bufferEq } = require('buffer-equal-constant-time');
 const extractWebhookData = require('./extractWebhookData');
 
 const sendToLagoonWebhooks = require('./sendToLagoonWebhooks');
-const { sendToLagoonLogs, initSendToLagoonLogs } = require('@lagoon/commons/src/logs');
+const { sendToLagoonLogs, initSendToLagoonLogs } = require('@lagoon/commons/dist/logs');
 
 // TODO: re-import type when this file converts to typescript
 // import type { Logger } from '@lagoon/commons/dist/local-logging';

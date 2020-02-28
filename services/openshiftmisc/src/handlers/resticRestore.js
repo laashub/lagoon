@@ -4,7 +4,7 @@ const promisify = require('util').promisify;
 const OpenShiftClient = require('openshift-client');
 const R = require('ramda');
 const { logger } = require('@lagoon/commons/dist/local-logging');
-const { sendToLagoonLogs } = require('@lagoon/commons/src/logs');
+const { sendToLagoonLogs } = require('@lagoon/commons/dist/logs');
 const {
   getOpenShiftInfoForProject,
 } = require('@lagoon/commons/src/api');

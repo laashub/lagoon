@@ -5,7 +5,7 @@ import type MariaSQL from 'mariasql';
 */
 
 const R = require('ramda');
-const { sendToLagoonLogs } = require('@lagoon/commons/src/logs');
+const { sendToLagoonLogs } = require('@lagoon/commons/dist/logs');
 const { createTaskTask } = require('@lagoon/commons/src/tasks');
 const { query } = require('../../util/db');
 const { pubSub } = require('../../clients/pubSub');

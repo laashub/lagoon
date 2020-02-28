@@ -1,6 +1,6 @@
 // @flow
 const R = require('ramda');
-const { sendToLagoonLogs } = require('@lagoon/commons/src/logs');
+const { sendToLagoonLogs } = require('@lagoon/commons/dist/logs');
 const { getUser } = require('@lagoon/commons/dist/gitlabApi');
 const { addUser } = require('@lagoon/commons/src/api');
 

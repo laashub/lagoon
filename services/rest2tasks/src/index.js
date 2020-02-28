@@ -8,7 +8,7 @@ const util = require('util');
 
 const { createDeployTask, createPromoteTask, createRemoveTask, initSendToLagoonTasks } = require('@lagoon/commons/src/tasks');
 const { logger } = require('@lagoon/commons/dist/local-logging');
-const { sendToLagoonLogs, initSendToLagoonLogs } = require('@lagoon/commons/src/logs');
+const { sendToLagoonLogs, initSendToLagoonLogs } = require('@lagoon/commons/dist/logs');
 
 initSendToLagoonTasks();
 initSendToLagoonLogs();

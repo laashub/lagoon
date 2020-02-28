@@ -10,6 +10,7 @@
     "./src/bitbucketApi.ts",
     "./src/gitlabApi.ts",
     "./src/jwt.ts",
-    "./src/local-logging.ts"
+    "./src/local-logging.ts",
+    "./src/logs.ts"
   ]
 }

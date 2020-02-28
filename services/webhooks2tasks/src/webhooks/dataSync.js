@@ -1,7 +1,7 @@
 // @flow
 
 const { logger } = require('@lagoon/commons/dist/local-logging');
-const { sendToLagoonLogs } = require('@lagoon/commons/src/logs');
+const { sendToLagoonLogs } = require('@lagoon/commons/dist/logs');
 const gitlabGroupCreate = require('../handlers/gitlabGroupCreate');
 const gitlabGroupUpdate = require('../handlers/gitlabGroupUpdate');
 const gitlabGroupDelete = require('../handlers/gitlabGroupDelete');

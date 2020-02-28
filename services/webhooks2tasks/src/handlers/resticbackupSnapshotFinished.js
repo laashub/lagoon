@@ -2,7 +2,7 @@
 
 const moment = require('moment');
 
-const { sendToLagoonLogs } = require('@lagoon/commons/src/logs');
+const { sendToLagoonLogs } = require('@lagoon/commons/dist/logs');
 const { logger } = require('@lagoon/commons/dist/local-logging');
 const {
   addBackup,

@@ -2,7 +2,7 @@
 
 const R = require('ramda');
 const getFieldNames = require('graphql-list-fields');
-const { sendToLagoonLogs } = require('@lagoon/commons/src/logs');
+const { sendToLagoonLogs } = require('@lagoon/commons/dist/logs');
 const {
   createDeployTask,
   createPromoteTask,

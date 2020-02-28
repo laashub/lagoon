@@ -1,7 +1,7 @@
 // @flow
 
 const R = require('ramda');
-const { sendToLagoonLogs } = require('@lagoon/commons/src/logs');
+const { sendToLagoonLogs } = require('@lagoon/commons/dist/logs');
 const { createRemoveTask } = require('@lagoon/commons/src/tasks');
 const esClient = require('../../clients/esClient');
 const { isPatchEmpty, prepare, query, whereAnd } = require('../../util/db');

@@ -1,5 +1,5 @@
 // @flow
-const { sendToLagoonLogs } = require('@lagoon/commons/src/logs');
+const { sendToLagoonLogs } = require('@lagoon/commons/dist/logs');
 const { removeUserFromGroup, sanitizeGroupName } = require('@lagoon/commons/src/api');
 const { getGroup } = require('@lagoon/commons/dist/gitlabApi');
 

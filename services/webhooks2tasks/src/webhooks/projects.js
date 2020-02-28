@@ -2,7 +2,7 @@
 
 const { logger } = require('@lagoon/commons/dist/local-logging');
 const { getProjectsByGitUrl } = require('@lagoon/commons/src/api');
-const { sendToLagoonLogs } = require('@lagoon/commons/src/logs');
+const { sendToLagoonLogs } = require('@lagoon/commons/dist/logs');
 const githubPullRequestClosed = require('../handlers/githubPullRequestClosed');
 const githubPullRequestOpened = require('../handlers/githubPullRequestOpened');
 const githubPullRequestSynchronize = require('../handlers/githubPullRequestSynchronize');

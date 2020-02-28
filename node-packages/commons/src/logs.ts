@@ -1,50 +1,46 @@
-// @flow
-
-const amqp = require('amqp-connection-manager');
-const { logger } = require('../dist/local-logging');
+import { connect } from 'amqp-connection-manager';
+import { logger } from './local-logging';
 
 const rabbitmqHost = process.env.RABBITMQ_HOST || 'broker';
 const rabbitmqUsername = process.env.RABBITMQ_USERNAME || 'guest';
 const rabbitmqPassword = process.env.RABBITMQ_PASSWORD || 'guest';
 let channelWrapperLogs;
-exports.initSendToLagoonLogs = initSendToLagoonLogs;
-exports.sendToLagoonLogs = sendToLagoonLogs;
 
-function initSendToLagoonLogs() {
-  const connection = amqp.connect(
+export function initSendToLagoonLogs() {
+  const connection = connect(
     [`amqp://${rabbitmqUsername}:${rabbitmqPassword}@${rabbitmqHost}`],
-    { json: true },
+    { json: true }
   );
 
   connection.on('connect', ({ url }) =>
     logger.verbose('lagoon-logs: Connected to %s', url, {
       action: 'connected',
-      url,
-    }),
+      url
+    })
   );
   connection.on('disconnect', params =>
     logger.error('lagoon-logs: Not connected, error: %s', params.err.code, {
       action: 'disconnected',
-      reason: params,
-    }),
+      reason: params
+    })
   );
 
   // Cast any to ChannelWrapper to get type-safetiness through our own code
   channelWrapperLogs = connection.createChannel({
     setup: channel =>
       Promise.all([
-        channel.assertExchange('lagoon-logs', 'direct', { durable: true }),
-      ]),
+        channel.assertExchange('lagoon-logs', 'direct', { durable: true })
+      ])
   });
 }
 
-async function sendToLagoonLogs(
+export async function sendToLagoonLogs(
   severity: string,
   project: string,
   uuid: string,
   event: string,
-  meta: Object,
-  message: string,
+  meta: any,
+  message: string
 ): Promise<void> {
   const payload = {
     severity,
@@ -52,7 +48,7 @@ async function sendToLagoonLogs(
     uuid,
     event,
     meta,
-    message,
+    message
   };
 
   try {
@@ -60,14 +56,14 @@ async function sendToLagoonLogs(
     const packageName = process.env.npm_package_name || '';
     const options = {
       persistent: true,
-      appId: packageName,
+      appId: packageName
     };
     await channelWrapperLogs.publish('lagoon-logs', '', buffer, options);
 
     logger.log(severity, `lagoon-logs: Send to lagoon-logs: ${message}`);
   } catch (error) {
     logger.error(
-      `lagoon-logs: Error send to rabbitmq lagoon-logs exchange, error: ${error}`,
+      `lagoon-logs: Error send to rabbitmq lagoon-logs exchange, error: ${error}`
     );
   }
 }

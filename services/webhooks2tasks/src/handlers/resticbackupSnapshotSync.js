@@ -1,7 +1,7 @@
 // @flow
 
 const uuid4 = require('uuid4');
-const { sendToLagoonLogs } = require('@lagoon/commons/src/logs');
+const { sendToLagoonLogs } = require('@lagoon/commons/dist/logs');
 const { logger } = require('@lagoon/commons/dist/local-logging');
 const {
   deleteBackup,
