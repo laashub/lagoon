@@ -26,3 +26,5 @@ COPY services/ui/package.json /app/services/ui/
 COPY cli/package.json /app/cli/
 
 RUN yarn install --frozen-lockfile
+
+RUN cd /app/node-packages/commons && yarn build
