@@ -1,5 +1,5 @@
 import * as R from 'ramda';
-import * as bitbucketApi from '@lagoon/commons/src/bitbucketApi';
+import * as bitbucketApi from '@lagoon/commons/dist/bitbucketApi';
 import * as api from '@lagoon/commons/src/api';
 import { logger } from '@lagoon/commons/src/local-logging';
 
