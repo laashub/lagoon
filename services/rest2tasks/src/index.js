@@ -6,7 +6,7 @@ const express = require('express');
 const cors = require('cors');
 const util = require('util');
 
-const { createDeployTask, createPromoteTask, createRemoveTask, initSendToLagoonTasks } = require('@lagoon/commons/src/tasks');
+const { createDeployTask, createPromoteTask, createRemoveTask, initSendToLagoonTasks } = require('@lagoon/commons/dist/tasks');
 const { logger } = require('@lagoon/commons/dist/local-logging');
 const { sendToLagoonLogs, initSendToLagoonLogs } = require('@lagoon/commons/dist/logs');
 

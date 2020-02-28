@@ -2,7 +2,7 @@
 
 const R = require('ramda');
 const { sendToLagoonLogs } = require('@lagoon/commons/dist/logs');
-const { createMiscTask } = require('@lagoon/commons/src/tasks');
+const { createMiscTask } = require('@lagoon/commons/dist/tasks');
 const { query, isPatchEmpty } = require('../../util/db');
 const {
   pubSub,

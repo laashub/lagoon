@@ -2825,7 +2825,14 @@
   dependencies:
     "@types/node" "*"
 
-"@types/amqplib@^0.5.1":
+"@types/amqp-connection-manager@^2.0.6":
+  version "2.0.6"
+  resolved "https://registry.yarnpkg.com/@types/amqp-connection-manager/-/amqp-connection-manager-2.0.6.tgz#e3226171f8430053ee45939452bec1828415b76f"
+  integrity sha512-eKE5l8aTRLKmhIU0uAjAskQdysrxoYA8tXC8TNSjg8xz0jxX3HQwcVWvAZuP3JImHNykJcro4ga9bQeGwcnkCQ==
+  dependencies:
+    "@types/amqplib" "*"
+
+"@types/amqplib@*", "@types/amqplib@^0.5.1":
   version "0.5.13"
   resolved "https://registry.yarnpkg.com/@types/amqplib/-/amqplib-0.5.13.tgz#a0dc9be08f38b91e5f7532acf0c89b0e515cdc6c"
   integrity sha512-0r8cJfUajAlcHxlJsZyqRrSAYzv+pJPsaAQjDC6e5rACi3AOIuR0AfevJG7NLvw3Qu4EGhf3KS/ECwd5cUAY2A==

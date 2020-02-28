@@ -10,7 +10,7 @@ const {
   consumeTasks,
   initSendToLagoonTasks,
   createTaskMonitor
-} = require('@lagoon/commons/src/tasks');
+} = require('@lagoon/commons/dist/tasks');
 const resticRestore = require('./handlers/resticRestore');
 const openshiftBuildCancel = require('./handlers/openshiftBuildCancel');
 

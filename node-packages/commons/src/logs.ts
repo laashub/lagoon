@@ -9,6 +9,7 @@ let channelWrapperLogs;
 export function initSendToLagoonLogs() {
   const connection = connect(
     [`amqp://${rabbitmqUsername}:${rabbitmqPassword}@${rabbitmqHost}`],
+    // @ts-ignore
     { json: true }
   );
 
@@ -19,6 +20,7 @@ export function initSendToLagoonLogs() {
     })
   );
   connection.on('disconnect', params =>
+    // @ts-ignore
     logger.error('lagoon-logs: Not connected, error: %s', params.err.code, {
       action: 'disconnected',
       reason: params

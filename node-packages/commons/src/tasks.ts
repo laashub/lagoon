@@ -1,7 +1,10 @@
-// @flow
-
-const amqp = require('amqp-connection-manager');
-const { logger } = require('../dist/local-logging');
+import {
+  connect,
+  AmqpConnectionManager,
+  ChannelWrapper
+} from 'amqp-connection-manager';
+import { ConfirmChannel, ConsumeMessage } from 'amqplib';
+import { logger } from './local-logging';
 
 exports.initSendToLagoonTasks = initSendToLagoonTasks;
 exports.createDeployTask = createDeployTask;
@@ -13,17 +16,33 @@ exports.createTaskMonitor = createTaskMonitor;
 exports.consumeTaskMonitor = consumeTaskMonitor;
 exports.consumeTasks = consumeTasks;
 
-import type { ChannelWrapper } from './types';
-
+// TODO: we can't "import" the api until flow is removed so this is the correct
+// path when this has been compiled into the "dist" folder
 const {
   getActiveSystemForProject,
-  getProductionEnvironmentForProject,
-  getEnvironmentsForProject,
-} = require('./api');
+  getEnvironmentsForProject
+} = require('../src/api');
+
+interface MessageConsumer {
+  (msg: ConsumeMessage): Promise<void>;
+}
+
+interface RetryHandler {
+  (
+    msg: ConsumeMessage,
+    error: Error,
+    retryCount: number,
+    retryExpirationSecs: number
+  ): void;
+}
+
+interface DeathHandler {
+  (msg: ConsumeMessage, error: Error): void;
+}
 
 let sendToLagoonTasks = (exports.sendToLagoonTasks = function sendToLagoonTasks(
   task: string,
-  payload?: Object,
+  payload?: any
 ) {
   // TODO: Actually do something here?
   return payload && undefined;
@@ -31,13 +50,39 @@ let sendToLagoonTasks = (exports.sendToLagoonTasks = function sendToLagoonTasks(
 
 let sendToLagoonTasksMonitor = (exports.sendToLagoonTasksMonitor = function sendToLagoonTasksMonitor(
   task: string,
-  payload?: Object,
+  payload?: any
 ) {
   // TODO: Actually do something here?
   return payload && undefined;
 });
 
-let connection = (exports.connection = function connection() {});
+// TODO: This is weird, why do we need an empty default connection? Or is there
+// a better way to type this?
+const defaultConnection: AmqpConnectionManager = {
+  // Default function for Event
+  removeListener: (() => {}) as any,
+  off: (() => {}) as any,
+  removeAllListeners: (() => {}) as any,
+  setMaxListeners: (() => {}) as any,
+  getMaxListeners: (() => {}) as any,
+  listeners: (() => {}) as any,
+  rawListeners: (() => {}) as any,
+  emit: (() => {}) as any,
+  eventNames: (() => {}) as any,
+  listenerCount: (() => {}) as any,
+
+  // Default functions for AmqpConnectionManager
+  addListener: (() => {}) as any,
+  on: (() => {}) as any,
+  once: (() => {}) as any,
+  prependListener: (() => {}) as any,
+  prependOnceListener: (() => {}) as any,
+  createChannel: (() => {}) as any,
+  isConnected: (() => {}) as any,
+  close: (() => {}) as any
+};
+
+let connection: AmqpConnectionManager = (exports.connection = defaultConnection);
 const rabbitmqHost = process.env.RABBITMQ_HOST || 'broker';
 const rabbitmqUsername = process.env.RABBITMQ_USERNAME || 'guest';
 const rabbitmqPassword = process.env.RABBITMQ_PASSWORD || 'guest';
@@ -78,75 +123,77 @@ class EnvironmentLimit extends Error {
 }
 
 function initSendToLagoonTasks() {
-  connection = amqp.connect(
+  connection = connect(
     [`amqp://${rabbitmqUsername}:${rabbitmqPassword}@${rabbitmqHost}`],
-    { json: true },
+    // @ts-ignore
+    { json: true }
   );
 
   connection.on('connect', ({ url }) =>
     logger.verbose('lagoon-tasks: Connected to %s', url, {
       action: 'connected',
-      url,
-    }),
+      url
+    })
   );
   connection.on('disconnect', params =>
+    // @ts-ignore
     logger.error('lagoon-tasks: Not connected, error: %s', params.err.code, {
       action: 'disconnected',
-      reason: params,
-    }),
+      reason: params
+    })
   );
 
   const channelWrapperTasks: ChannelWrapper = connection.createChannel({
-    setup(channel) {
+    setup(channel: ConfirmChannel) {
       return Promise.all([
         // Our main Exchange for all lagoon-tasks
         channel.assertExchange('lagoon-tasks', 'direct', { durable: true }),
 
         channel.assertExchange('lagoon-tasks-delay', 'x-delayed-message', {
           durable: true,
-          arguments: { 'x-delayed-type': 'fanout' },
+          arguments: { 'x-delayed-type': 'fanout' }
         }),
         channel.bindExchange('lagoon-tasks', 'lagoon-tasks-delay', ''),
 
         // Exchange for task monitoring
         channel.assertExchange('lagoon-tasks-monitor', 'direct', {
-          durable: true,
+          durable: true
         }),
 
         channel.assertExchange(
           'lagoon-tasks-monitor-delay',
           'x-delayed-message',
-          { durable: true, arguments: { 'x-delayed-type': 'fanout' } },
+          { durable: true, arguments: { 'x-delayed-type': 'fanout' } }
         ),
         channel.bindExchange(
           'lagoon-tasks-monitor',
           'lagoon-tasks-monitor-delay',
-          '',
-        ),
+          ''
+        )
       ]);
-    },
+    }
   });
 
   exports.sendToLagoonTasks = sendToLagoonTasks = async (
     task: string,
-    payload: Object,
+    payload: any
   ): Promise<string> => {
     try {
       const buffer = Buffer.from(JSON.stringify(payload));
       await channelWrapperTasks.publish('lagoon-tasks', task, buffer, {
-        persistent: true,
+        persistent: true
       });
       logger.debug(
         `lagoon-tasks: Successfully created task '${task}'`,
-        payload,
+        payload
       );
       return `lagoon-tasks: Successfully created task '${task}': ${JSON.stringify(
-        payload,
+        payload
       )}`;
     } catch (error) {
       logger.error('lagoon-tasks: Error send to lagoon-tasks exchange', {
         payload,
-        error,
+        error
       });
       throw error;
     }
@@ -154,44 +201,44 @@ function initSendToLagoonTasks() {
 
   exports.sendToLagoonTasksMonitor = sendToLagoonTasksMonitor = async (
     task: string,
-    payload: Object,
+    payload: any
   ): Promise<string> => {
     try {
       const buffer = Buffer.from(JSON.stringify(payload));
       await channelWrapperTasks.publish('lagoon-tasks-monitor', task, buffer, {
-        persistent: true,
+        persistent: true
       });
       logger.debug(
         `lagoon-tasks-monitor: Successfully created monitor '${task}'`,
-        payload,
+        payload
       );
       return `lagoon-tasks-monitor: Successfully created task monitor '${task}': ${JSON.stringify(
-        payload,
+        payload
       )}`;
     } catch (error) {
       logger.error(
         'lagoon-tasks-monitor: Error send to lagoon-tasks-monitor exchange',
         {
           payload,
-          error,
-        },
+          error
+        }
       );
       throw error;
     }
   };
 }
 
-async function createTaskMonitor(task: string, payload: Object) {
+async function createTaskMonitor(task: string, payload: any) {
   return sendToLagoonTasksMonitor(task, payload);
 }
 
-async function createDeployTask(deployData: Object) {
+async function createDeployTask(deployData: any) {
   const {
     projectName,
     branchName,
     // sha,
     type,
-    pullrequestTitle,
+    pullrequestTitle
   } = deployData;
 
   const project = await getActiveSystemForProject(projectName, 'deploy');
@@ -205,7 +252,7 @@ async function createDeployTask(deployData: Object) {
 
   if (typeof project.activeSystemsDeploy === 'undefined') {
     throw new UnknownActiveSystem(
-      `No active system for tasks 'deploy' in for project ${projectName}`,
+      `No active system for tasks 'deploy' in for project ${projectName}`
     );
   }
 
@@ -213,7 +260,7 @@ async function createDeployTask(deployData: Object) {
     case 'lagoon_openshiftBuildDeploy':
       if (environments.project.productionEnvironment === branchName) {
         logger.debug(
-          `projectName: ${projectName}, branchName: ${branchName}, production environment, no environment limits considered`,
+          `projectName: ${projectName}, branchName: ${branchName}, production environment, no environment limits considered`
         );
       } else {
         // get a list of non-production environments
@@ -223,7 +270,7 @@ async function createDeployTask(deployData: Object) {
           .map(e => e.name);
         logger.debug(
           `projectName: ${projectName}, branchName: ${branchName}, existing environments are `,
-          dev_environments,
+          dev_environments
         );
 
         if (
@@ -233,13 +280,11 @@ async function createDeployTask(deployData: Object) {
         ) {
           if (dev_environments.find(i => i === branchName)) {
             logger.debug(
-              `projectName: ${projectName}, branchName: ${branchName}, environment already exists, no environment limits considered`,
+              `projectName: ${projectName}, branchName: ${branchName}, environment already exists, no environment limits considered`
             );
           } else {
             throw new EnvironmentLimit(
-              `'${branchName}' would exceed the configured limit of ${
-                environments.project.developmentEnvironmentsLimit
-              } development environments for project ${projectName}`,
+              `'${branchName}' would exceed the configured limit of ${environments.project.developmentEnvironmentsLimit} development environments for project ${projectName}`
             );
           }
         }
@@ -250,43 +295,35 @@ async function createDeployTask(deployData: Object) {
           case undefined:
           case null:
             logger.debug(
-              `projectName: ${projectName}, branchName: ${branchName}, no branches defined in active system, assuming we want all of them`,
+              `projectName: ${projectName}, branchName: ${branchName}, no branches defined in active system, assuming we want all of them`
             );
             return sendToLagoonTasks('builddeploy-openshift', deployData);
           case 'true':
             logger.debug(
-              `projectName: ${projectName}, branchName: ${branchName}, all branches active, therefore deploying`,
+              `projectName: ${projectName}, branchName: ${branchName}, all branches active, therefore deploying`
             );
             return sendToLagoonTasks('builddeploy-openshift', deployData);
           case 'false':
             logger.debug(
-              `projectName: ${projectName}, branchName: ${branchName}, branch deployments disabled`,
+              `projectName: ${projectName}, branchName: ${branchName}, branch deployments disabled`
             );
             throw new NoNeedToDeployBranch('Branch deployments disabled');
           default: {
             logger.debug(
-              `projectName: ${projectName}, branchName: ${branchName}, regex ${
-                project.branches
-              }, testing if it matches`,
+              `projectName: ${projectName}, branchName: ${branchName}, regex ${project.branches}, testing if it matches`
             );
             const branchRegex = new RegExp(project.branches);
             if (branchRegex.test(branchName)) {
               logger.debug(
-                `projectName: ${projectName}, branchName: ${branchName}, regex ${
-                  project.branches
-                } matched branchname, starting deploy`,
+                `projectName: ${projectName}, branchName: ${branchName}, regex ${project.branches} matched branchname, starting deploy`
               );
               return sendToLagoonTasks('builddeploy-openshift', deployData);
             }
             logger.debug(
-              `projectName: ${projectName}, branchName: ${branchName}, regex ${
-                project.branches
-              } did not match branchname, not deploying`,
+              `projectName: ${projectName}, branchName: ${branchName}, regex ${project.branches} did not match branchname, not deploying`
             );
             throw new NoNeedToDeployBranch(
-              `configured regex '${
-                project.branches
-              }' does not match branchname '${branchName}'`,
+              `configured regex '${project.branches}' does not match branchname '${branchName}'`
             );
           }
         }
@@ -295,44 +332,36 @@ async function createDeployTask(deployData: Object) {
           case undefined:
           case null:
             logger.debug(
-              `projectName: ${projectName}, pullrequest: ${branchName}, no pullrequest defined in active system, assuming we want all of them`,
+              `projectName: ${projectName}, pullrequest: ${branchName}, no pullrequest defined in active system, assuming we want all of them`
             );
             return sendToLagoonTasks('builddeploy-openshift', deployData);
           case 'true':
             logger.debug(
-              `projectName: ${projectName}, pullrequest: ${branchName}, all pullrequest active, therefore deploying`,
+              `projectName: ${projectName}, pullrequest: ${branchName}, all pullrequest active, therefore deploying`
             );
             return sendToLagoonTasks('builddeploy-openshift', deployData);
           case 'false':
             logger.debug(
-              `projectName: ${projectName}, pullrequest: ${branchName}, pullrequest deployments disabled`,
+              `projectName: ${projectName}, pullrequest: ${branchName}, pullrequest deployments disabled`
             );
             throw new NoNeedToDeployBranch('PullRequest deployments disabled');
           default: {
             logger.debug(
-              `projectName: ${projectName}, pullrequest: ${branchName}, regex ${
-                project.pullrequests
-              }, testing if it matches PR Title '${pullrequestTitle}'`,
+              `projectName: ${projectName}, pullrequest: ${branchName}, regex ${project.pullrequests}, testing if it matches PR Title '${pullrequestTitle}'`
             );
 
             const branchRegex = new RegExp(project.pullrequests);
             if (branchRegex.test(pullrequestTitle)) {
               logger.debug(
-                `projectName: ${projectName}, pullrequest: ${branchName}, regex ${
-                  project.pullrequests
-                } matched PR Title '${pullrequestTitle}', starting deploy`,
+                `projectName: ${projectName}, pullrequest: ${branchName}, regex ${project.pullrequests} matched PR Title '${pullrequestTitle}', starting deploy`
               );
               return sendToLagoonTasks('builddeploy-openshift', deployData);
             }
             logger.debug(
-              `projectName: ${projectName}, branchName: ${branchName}, regex ${
-                project.pullrequests
-              } did not match PR Title, not deploying`,
+              `projectName: ${projectName}, branchName: ${branchName}, regex ${project.pullrequests} did not match PR Title, not deploying`
             );
             throw new NoNeedToDeployBranch(
-              `configured regex '${
-                project.pullrequests
-              }' does not match PR Title '${pullrequestTitle}'`,
+              `configured regex '${project.pullrequests}' does not match PR Title '${pullrequestTitle}'`
             );
           }
         }
@@ -340,16 +369,14 @@ async function createDeployTask(deployData: Object) {
       break;
     default:
       throw new UnknownActiveSystem(
-        `Unknown active system '${
-          project.activeSystemsDeploy
-        }' for task 'deploy' in for project ${projectName}`,
+        `Unknown active system '${project.activeSystemsDeploy}' for task 'deploy' in for project ${projectName}`
       );
   }
 }
 
-async function createPromoteTask(promoteData: Object) {
+async function createPromoteTask(promoteData: any) {
   const {
-    projectName,
+    projectName
     // branchName,
     // promoteSourceEnvironment,
     // type,
@@ -359,7 +386,7 @@ async function createPromoteTask(promoteData: Object) {
 
   if (typeof project.activeSystemsPromote === 'undefined') {
     throw new UnknownActiveSystem(
-      `No active system for tasks 'deploy' in for project ${projectName}`,
+      `No active system for tasks 'deploy' in for project ${projectName}`
     );
   }
 
@@ -369,14 +396,12 @@ async function createPromoteTask(promoteData: Object) {
 
     default:
       throw new UnknownActiveSystem(
-        `Unknown active system '${
-          project.activeSystemsPromote
-        }' for task 'deploy' in for project ${projectName}`,
+        `Unknown active system '${project.activeSystemsPromote}' for task 'deploy' in for project ${projectName}`
       );
   }
 }
 
-async function createRemoveTask(removeData: Object) {
+async function createRemoveTask(removeData: any) {
   const {
     projectName,
     branch,
@@ -384,20 +409,18 @@ async function createRemoveTask(removeData: Object) {
     pullrequestNumber,
     pullrequestTitle,
     forceDeleteProductionEnvironment,
-    type,
+    type
   } = removeData;
 
   // Load all environments that currently exist (and are not deleted).
-  const allEnvironments = await getEnvironmentsForProject(
-    projectName,
-  );
+  const allEnvironments = await getEnvironmentsForProject(projectName);
 
   // Check to see if we are deleting the production environment, and if so,
   // ensure the flag is set to allow this.
   if (branch === allEnvironments.project.productionEnvironment) {
     if (forceDeleteProductionEnvironment !== true) {
       throw new CannotDeleteProductionEnvironment(
-        `'${branch}' is defined as the production environment for ${projectName}, refusing to remove.`,
+        `'${branch}' is defined as the production environment for ${projectName}, refusing to remove.`
       );
     }
   }
@@ -406,7 +429,7 @@ async function createRemoveTask(removeData: Object) {
 
   if (typeof project.activeSystemsRemove === 'undefined') {
     throw new UnknownActiveSystem(
-      `No active system for tasks 'remove' in for project ${projectName}`,
+      `No active system for tasks 'remove' in for project ${projectName}`
     );
   }
 
@@ -415,7 +438,10 @@ async function createRemoveTask(removeData: Object) {
       if (type === 'branch') {
         // Check to ensure the environment actually exists.
         let foundEnvironment = false;
-        allEnvironments.project.environments.forEach(function (environment, index) {
+        allEnvironments.project.environments.forEach(function(
+          environment,
+          index
+        ) {
           if (environment.name === branch) {
             foundEnvironment = true;
           }
@@ -423,16 +449,17 @@ async function createRemoveTask(removeData: Object) {
 
         if (!foundEnvironment) {
           logger.debug(
-            `projectName: ${projectName}, branchName: ${branch}, no environment found.`,
+            `projectName: ${projectName}, branchName: ${branch}, no environment found.`
           );
-          throw new NoNeedToRemoveBranch('Branch environment does not exist, no need to remove anything.');
+          throw new NoNeedToRemoveBranch(
+            'Branch environment does not exist, no need to remove anything.'
+          );
         }
 
         logger.debug(
-          `projectName: ${projectName}, branchName: ${branchName}. Removing branch environment.`,
+          `projectName: ${projectName}, branchName: ${branchName}. Removing branch environment.`
         );
         return sendToLagoonTasks('remove-openshift', removeData);
-
       } else if (type === 'pullrequest') {
         // Work out the branch name from the PR number.
         let branchName = 'pr-' + pullrequestNumber;
@@ -440,7 +467,10 @@ async function createRemoveTask(removeData: Object) {
 
         // Check to ensure the environment actually exists.
         let foundEnvironment = false;
-        allEnvironments.project.environments.forEach(function (environment, index) {
+        allEnvironments.project.environments.forEach(function(
+          environment,
+          index
+        ) {
           if (environment.name === branchName) {
             foundEnvironment = true;
           }
@@ -448,16 +478,17 @@ async function createRemoveTask(removeData: Object) {
 
         if (!foundEnvironment) {
           logger.debug(
-            `projectName: ${projectName}, pullrequest: ${branchName}, no pullrequest found.`,
+            `projectName: ${projectName}, pullrequest: ${branchName}, no pullrequest found.`
           );
-          throw new NoNeedToRemoveBranch('Pull Request environment does not exist, no need to remove anything.');
+          throw new NoNeedToRemoveBranch(
+            'Pull Request environment does not exist, no need to remove anything.'
+          );
         }
 
         logger.debug(
-          `projectName: ${projectName}, pullrequest: ${branchName}. Removing pullrequest environment.`,
+          `projectName: ${projectName}, pullrequest: ${branchName}. Removing pullrequest environment.`
         );
         return sendToLagoonTasks('remove-openshift', removeData);
-
       } else if (type === 'promote') {
         return sendToLagoonTasks('remove-openshift', removeData);
       }
@@ -465,23 +496,19 @@ async function createRemoveTask(removeData: Object) {
 
     default:
       throw new UnknownActiveSystem(
-        `Unknown active system '${
-          project.activeSystemsRemove
-        }' for task 'remove' in for project ${projectName}`,
+        `Unknown active system '${project.activeSystemsRemove}' for task 'remove' in for project ${projectName}`
       );
   }
 }
 
-async function createTaskTask(taskData: Object) {
-  const {
-    project,
-  } = taskData;
+async function createTaskTask(taskData: any) {
+  const { project } = taskData;
 
   const projectSystem = await getActiveSystemForProject(project.name, 'task');
 
   if (typeof projectSystem.activeSystemsTask === 'undefined') {
     throw new UnknownActiveSystem(
-      `No active system for 'task' for project ${project.name}`,
+      `No active system for 'task' for project ${project.name}`
     );
   }
 
@@ -491,24 +518,22 @@ async function createTaskTask(taskData: Object) {
 
     default:
       throw new UnknownActiveSystem(
-        `Unknown active system '${
-          projectSystem.activeSystemsTask
-        }' for 'task' for project ${project.name}`,
+        `Unknown active system '${projectSystem.activeSystemsTask}' for 'task' for project ${project.name}`
       );
   }
 }
 
-async function createMiscTask(taskData: Object) {
+async function createMiscTask(taskData: any) {
   return sendToLagoonTasks('misc-openshift', taskData);
 }
 
 async function consumeTasks(
   taskQueueName: string,
-  messageConsumer: Function,
-  retryHandler: Function,
-  deathHandler: Function,
+  messageConsumer: MessageConsumer,
+  retryHandler: RetryHandler,
+  deathHandler: DeathHandler
 ) {
-  const onMessage = async msg => {
+  const onMessage = async (msg: ConsumeMessage) => {
     try {
       await messageConsumer(msg);
       channelWrapperTasks.ack(msg);
@@ -534,7 +559,7 @@ async function consumeTasks(
       } catch (retryError) {
         // intentionally empty as we don't want to fail and not requeue our message just becase the retryHandler fails
         logger.info(
-          `lagoon-tasks: retryHandler for ${taskQueueName} failed with ${retryError}, will continue to retry the message anyway.`,
+          `lagoon-tasks: retryHandler for ${taskQueueName} failed with ${retryError}, will continue to retry the message anyway.`
         );
       }
 
@@ -547,9 +572,9 @@ async function consumeTasks(
         headers: {
           ...msg.properties.headers,
           'x-delay': retryDelayMilisecs,
-          'x-retry': retryCount,
+          'x-retry': retryCount
         },
-        persistent: true,
+        persistent: true
       };
 
       // publishing a new message with the same content as the original message but into the `lagoon-tasks-delay` exchange,
@@ -558,7 +583,7 @@ async function consumeTasks(
         'lagoon-tasks-delay',
         msg.fields.routingKey,
         msg.content,
-        retryMsgOptions,
+        retryMsgOptions
       );
 
       // acknologing the existing message, we cloned it and is not necessary anymore
@@ -567,29 +592,29 @@ async function consumeTasks(
   };
 
   const channelWrapperTasks = connection.createChannel({
-    setup(channel) {
+    setup(channel: ConfirmChannel) {
       return Promise.all([
         channel.assertQueue(`lagoon-tasks:${taskQueueName}`, { durable: true }),
         channel.bindQueue(
           `lagoon-tasks:${taskQueueName}`,
           'lagoon-tasks',
-          taskQueueName,
+          taskQueueName
         ),
         channel.prefetch(2),
         channel.consume(`lagoon-tasks:${taskQueueName}`, onMessage, {
-          noAck: false,
-        }),
+          noAck: false
+        })
       ]);
-    },
+    }
   });
 }
 
 async function consumeTaskMonitor(
   taskMonitorQueueName: string,
-  messageConsumer: Function,
-  deathHandler: Function,
+  messageConsumer: MessageConsumer,
+  deathHandler: DeathHandler
 ) {
-  const onMessage = async msg => {
+  const onMessage = async (msg: ConsumeMessage) => {
     try {
       await messageConsumer(msg);
       channelWrapperTaskMonitor.ack(msg);
@@ -618,9 +643,9 @@ async function consumeTaskMonitor(
         headers: {
           ...msg.properties.headers,
           'x-delay': retryDelayMilisecs,
-          'x-retry': retryCount,
+          'x-retry': retryCount
         },
-        persistent: true,
+        persistent: true
       };
 
       // publishing a new message with the same content as the original message but into the `lagoon-tasks-delay` exchange,
@@ -629,7 +654,7 @@ async function consumeTaskMonitor(
         'lagoon-tasks-monitor-delay',
         msg.fields.routingKey,
         msg.content,
-        retryMsgOptions,
+        retryMsgOptions
       );
 
       // acknologing the existing message, we cloned it and is not necessary anymore
@@ -638,23 +663,23 @@ async function consumeTaskMonitor(
   };
 
   const channelWrapperTaskMonitor = connection.createChannel({
-    setup(channel) {
+    setup(channel: ConfirmChannel) {
       return Promise.all([
         channel.assertQueue(`lagoon-tasks-monitor:${taskMonitorQueueName}`, {
-          durable: true,
+          durable: true
         }),
         channel.bindQueue(
           `lagoon-tasks-monitor:${taskMonitorQueueName}`,
           'lagoon-tasks-monitor',
-          taskMonitorQueueName,
+          taskMonitorQueueName
         ),
         channel.prefetch(1),
         channel.consume(
           `lagoon-tasks-monitor:${taskMonitorQueueName}`,
           onMessage,
-          { noAck: false },
-        ),
+          { noAck: false }
+        )
       ]);
-    },
+    }
   });
 }

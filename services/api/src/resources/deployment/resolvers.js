@@ -7,7 +7,7 @@ const {
   createDeployTask,
   createPromoteTask,
   createMiscTask,
-} = require('@lagoon/commons/src/tasks');
+} = require('@lagoon/commons/dist/tasks');
 const esClient = require('../../clients/esClient');
 const {
   pubSub,

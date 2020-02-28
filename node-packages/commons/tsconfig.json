@@ -11,6 +11,7 @@
     "./src/gitlabApi.ts",
     "./src/jwt.ts",
     "./src/local-logging.ts",
-    "./src/logs.ts"
+    "./src/logs.ts",
+    "./src/tasks.ts"
   ]
 }

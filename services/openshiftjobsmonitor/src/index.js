@@ -15,7 +15,7 @@ const {
 const {
   consumeTaskMonitor,
   initSendToLagoonTasks
-} = require('@lagoon/commons/src/tasks');
+} = require('@lagoon/commons/dist/tasks');
 
 class JobNotCompletedYet extends Error {
   constructor(message: string) {

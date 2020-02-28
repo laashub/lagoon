@@ -17,7 +17,7 @@ const {
 } = require('@lagoon/commons/src/api');
 
 const { sendToLagoonLogs, initSendToLagoonLogs } = require('@lagoon/commons/dist/logs');
-const { consumeTaskMonitor, initSendToLagoonTasks } = require('@lagoon/commons/src/tasks');
+const { consumeTaskMonitor, initSendToLagoonTasks } = require('@lagoon/commons/dist/tasks');
 
 class BuildNotCompletedYet extends Error {
   constructor(message: string) {
